@@ -1,5 +1,6 @@
 package me.barny1094875.shulkerstackingog.Listeners;
 
+import java.util.ArrayList;
 import me.barny1094875.shulkerstackingog.ShulkerStacking_OG;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -12,88 +13,91 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
-
-public class ShulkerDragHandler implements Listener
-{
+public class ShulkerDragHandler implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
-    public void shulkerBoxDrag(InventoryDragEvent event)
-    {
-        if (!event.getOldCursor().getType().toString().contains("SHULKER_BOX"))
-        {
+    public void shulkerBoxDrag(InventoryDragEvent event) {
+        if (!event.getOldCursor().getType().toString().contains("SHULKER_BOX")) {
             return;
         }
 
         // disable default behavior
         event.setCancelled(true);
 
-        Bukkit.getScheduler().runTask(ShulkerStacking_OG.getPlugin(), () ->
-        {
+        Bukkit.getScheduler().runTask(ShulkerStacking_OG.getPlugin(), () -> {
             // check if the inventory was closed in the last tick
             // this prevents a dupe glitch from occurring
-            if (ShulkerStacking_OG.isInventoryClosed.get(event.getWhoClicked().getUniqueId()))
-            {
+            if (ShulkerStacking_OG.isInventoryClosed.get(event.getWhoClicked().getUniqueId())) {
                 return;
             }
             ItemStack shulkerBoxes = event.getOldCursor();
             int numberOfSlotsDragged = event.getInventorySlots().size();
-            ArrayList<Integer> slotsDragged = new ArrayList<>(event.getInventorySlots().stream().toList());
+            ArrayList<Integer> slotsDragged =
+                    new ArrayList<>(event.getInventorySlots().stream().toList());
             Inventory dragInventory = event.getView().getBottomInventory();
             // right click drag
-            if (event.getType().equals(DragType.SINGLE))
-            {
+            if (event.getType().equals(DragType.SINGLE)) {
                 // if the player drags a stack of shulker boxes
-                if (shulkerBoxes.getAmount() <= 1)
-                {
+                if (shulkerBoxes.getAmount() <= 1) {
                     return;
                 }
                 // set each slot to the appropriate amount of shulkers
-                for (int i = 0; i < numberOfSlotsDragged; i++)
-                {
-                    if (dragInventory.getItem(slotsDragged.get(i)) == null ||
-                            dragInventory.getItem(slotsDragged.get(i)).getType() == Material.AIR)
-                    {
+                for (int i = 0; i < numberOfSlotsDragged; i++) {
+                    if (dragInventory.getItem(slotsDragged.get(i)) == null
+                            || dragInventory.getItem(slotsDragged.get(i)).getType() == Material.AIR) {
                         dragInventory.setItem(slotsDragged.get(i), new ItemStack(shulkerBoxes.getType(), 1));
-                    }
-                    else if (dragInventory.getItem(slotsDragged.get(i)) != null && dragInventory.getItem(slotsDragged.get(i)).getType().equals(shulkerBoxes.getType()))
-                    {
-                        dragInventory.getItem(slotsDragged.get(i)).setAmount(dragInventory.getItem(slotsDragged.get(i)).getAmount() + 1);
+                    } else if (dragInventory.getItem(slotsDragged.get(i)) != null
+                            && dragInventory
+                                    .getItem(slotsDragged.get(i))
+                                    .getType()
+                                    .equals(shulkerBoxes.getType())) {
+                        dragInventory
+                                .getItem(slotsDragged.get(i))
+                                .setAmount(dragInventory
+                                                .getItem(slotsDragged.get(i))
+                                                .getAmount()
+                                        + 1);
                     }
                 }
                 // remove the shulker boxes from the player's cursor
-                event.getWhoClicked().setItemOnCursor(new ItemStack(shulkerBoxes.getType(), shulkerBoxes.getAmount() - numberOfSlotsDragged));
+                event.getWhoClicked()
+                        .setItemOnCursor(
+                                new ItemStack(shulkerBoxes.getType(), shulkerBoxes.getAmount() - numberOfSlotsDragged));
             }
             // left click drag
-            else if (event.getType().equals(DragType.EVEN))
-            {
+            else if (event.getType().equals(DragType.EVEN)) {
                 // if the player drags a stack of shulker boxes
-                if (shulkerBoxes.getAmount() <= 1)
-                {
+                if (shulkerBoxes.getAmount() <= 1) {
                     return;
                 }
                 // set each slot to the appropriate amount of shulkers
-                for (int i = 0; i < numberOfSlotsDragged; i++)
-                {
-                    if (dragInventory.getItem(slotsDragged.get(i)) == null || dragInventory.getItem(slotsDragged.get(i)).getType() == Material.AIR)
-                    {
-                        ItemStack newShulkerBoxes = new ItemStack(shulkerBoxes.getType(), shulkerBoxes.getAmount() / numberOfSlotsDragged);
+                for (int i = 0; i < numberOfSlotsDragged; i++) {
+                    if (dragInventory.getItem(slotsDragged.get(i)) == null
+                            || dragInventory.getItem(slotsDragged.get(i)).getType() == Material.AIR) {
+                        ItemStack newShulkerBoxes =
+                                new ItemStack(shulkerBoxes.getType(), shulkerBoxes.getAmount() / numberOfSlotsDragged);
                         dragInventory.setItem(slotsDragged.get(i), newShulkerBoxes);
-                        if (newShulkerBoxes.getAmount() > 64)
-                        {
+                        if (newShulkerBoxes.getAmount() > 64) {
                             shulkerBoxes.setAmount(shulkerBoxes.getAmount() - (64 - shulkerBoxes.getAmount()));
                             newShulkerBoxes.setAmount(64);
                             slotsDragged.remove(i);
                             break;
                         }
                         dragInventory.setItem(slotsDragged.get(i), newShulkerBoxes);
-                    }
-                    else if (dragInventory.getItem(slotsDragged.get(i)) != null && dragInventory.getItem(slotsDragged.get(i)).getType().equals(shulkerBoxes.getType()))
-                    {
-                        ItemStack newShulkerBoxes = new ItemStack(shulkerBoxes.getType(), shulkerBoxes.getAmount() / numberOfSlotsDragged);
-                        dragInventory.getItem(slotsDragged.get(i)).setAmount(dragInventory.getItem(slotsDragged.get(i)).getAmount() + shulkerBoxes.getAmount() / numberOfSlotsDragged);
-                        if (newShulkerBoxes.getAmount() > 64)
-                        {
+                    } else if (dragInventory.getItem(slotsDragged.get(i)) != null
+                            && dragInventory
+                                    .getItem(slotsDragged.get(i))
+                                    .getType()
+                                    .equals(shulkerBoxes.getType())) {
+                        ItemStack newShulkerBoxes =
+                                new ItemStack(shulkerBoxes.getType(), shulkerBoxes.getAmount() / numberOfSlotsDragged);
+                        dragInventory
+                                .getItem(slotsDragged.get(i))
+                                .setAmount(dragInventory
+                                                .getItem(slotsDragged.get(i))
+                                                .getAmount()
+                                        + shulkerBoxes.getAmount() / numberOfSlotsDragged);
+                        if (newShulkerBoxes.getAmount() > 64) {
                             shulkerBoxes.setAmount(shulkerBoxes.getAmount() - (64 - shulkerBoxes.getAmount()));
                             newShulkerBoxes.setAmount(64);
                             slotsDragged.remove(i);
@@ -102,10 +106,11 @@ public class ShulkerDragHandler implements Listener
                         dragInventory.setItem(slotsDragged.get(i), newShulkerBoxes);
                     }
                 }
-                event.getWhoClicked().setItemOnCursor(new ItemStack(shulkerBoxes.getType(), shulkerBoxes.getAmount() % numberOfSlotsDragged));
+                event.getWhoClicked()
+                        .setItemOnCursor(
+                                new ItemStack(shulkerBoxes.getType(), shulkerBoxes.getAmount() % numberOfSlotsDragged));
                 ((Player) event.getWhoClicked()).updateInventory();
             }
         });
     }
-
 }

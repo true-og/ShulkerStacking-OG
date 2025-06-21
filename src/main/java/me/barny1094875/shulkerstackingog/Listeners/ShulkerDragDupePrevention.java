@@ -7,14 +7,16 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 
-public class ShulkerDragDupePrevention implements Listener
-{
+public class ShulkerDragDupePrevention implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
-    public void shulkerDragDupePrevent(InventoryCloseEvent event)
-    {
+    public void shulkerDragDupePrevent(InventoryCloseEvent event) {
         ShulkerStacking_OG.isInventoryClosed.put(event.getPlayer().getUniqueId(), true);
-        Bukkit.getScheduler().runTaskLater(ShulkerStacking_OG.getPlugin(),
-                () -> ShulkerStacking_OG.isInventoryClosed.put(event.getPlayer().getUniqueId(), false), 2);
+        Bukkit.getScheduler()
+                .runTaskLater(
+                        ShulkerStacking_OG.getPlugin(),
+                        () -> ShulkerStacking_OG.isInventoryClosed.put(
+                                event.getPlayer().getUniqueId(), false),
+                        2);
     }
 }

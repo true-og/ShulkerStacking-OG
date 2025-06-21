@@ -1,13 +1,11 @@
 package me.barny1094875.shulkerstackingog;
 
+import java.util.HashMap;
+import java.util.UUID;
 import me.barny1094875.shulkerstackingog.Listeners.*;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.HashMap;
-import java.util.UUID;
-
-public final class ShulkerStacking_OG extends JavaPlugin
-{
+public final class ShulkerStacking_OG extends JavaPlugin {
 
     private static ShulkerStacking_OG plugin;
 
@@ -15,8 +13,7 @@ public final class ShulkerStacking_OG extends JavaPlugin
     public static HashMap<UUID, Boolean> isInventoryClosed = new HashMap<>();
 
     @Override
-    public void onEnable()
-    {
+    public void onEnable() {
         plugin = this;
         // Plugin startup logic
         getServer().getPluginManager().registerEvents(new ShulkerBoxStackingController(), this);
@@ -26,8 +23,7 @@ public final class ShulkerStacking_OG extends JavaPlugin
         getServer().getPluginManager().registerEvents(new ShulkerBoxHopperHandler(), this);
     }
 
-    public static ShulkerStacking_OG getPlugin()
-    {
+    public static ShulkerStacking_OG getPlugin() {
         return plugin;
     }
 }

@@ -10,15 +10,13 @@ import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BlockStateMeta;
 
-public class DoubleClick
-{
+public class DoubleClick {
 
-    public static void DoubleClickShulkerBox(ItemStack cursorItem, InventoryClickEvent event)
-    {
+    public static void DoubleClickShulkerBox(ItemStack cursorItem, InventoryClickEvent event) {
         // check that the held shulker box is empty
-        Inventory heldShulkerInventory = ((ShulkerBox) ((BlockStateMeta) cursorItem.getItemMeta()).getBlockState()).getInventory();
-        if (heldShulkerInventory.isEmpty())
-        {
+        Inventory heldShulkerInventory =
+                ((ShulkerBox) ((BlockStateMeta) cursorItem.getItemMeta()).getBlockState()).getInventory();
+        if (heldShulkerInventory.isEmpty()) {
             // loop through the inventory, and the player's inventory
             // and count up the shulker boxes
             // ignore boxes in result slots
@@ -48,15 +46,17 @@ public class DoubleClick
             // more shulker boxes, counting them up, and removing them
             // up to 64 boxes
             int shulkerBoxCount = cursorItem.getAmount();
-            while (tempContainerInventory.first(shulkerType) != -1)
-            {
+            while (tempContainerInventory.first(shulkerType) != -1) {
                 int firstShulker = tempContainerInventory.first(shulkerType);
                 // grab the inventory of the shulker box in that slot
-                Inventory shulkerInventory = ((ShulkerBox) ((BlockStateMeta) tempContainerInventory.getItem(firstShulker).getItemMeta()).getBlockState()).getInventory();
+                Inventory shulkerInventory = ((ShulkerBox) ((BlockStateMeta) tempContainerInventory
+                                        .getItem(firstShulker)
+                                        .getItemMeta())
+                                .getBlockState())
+                        .getInventory();
                 // if that inventory is not empty, delete it from the temporary inventory, and continue on
                 // otherwise, do the rest of the logic
-                if (!shulkerInventory.isEmpty())
-                {
+                if (!shulkerInventory.isEmpty()) {
                     tempContainerInventory.setItem(firstShulker, new ItemStack(Material.AIR));
                     continue;
                 }
@@ -64,16 +64,14 @@ public class DoubleClick
                 // if the shulker box is in a RESULT slot, then break from
                 // the loop, since that is always the last slot
                 InventoryType.SlotType slotType = eventView.getSlotType(firstShulker);
-                if (slotType.equals(InventoryType.SlotType.RESULT))
-                {
+                if (slotType.equals(InventoryType.SlotType.RESULT)) {
                     break;
                 }
 
                 // if the shulker box count would have gone above 64
                 ItemStack shulkerStackItem = containerInventory.getItem(firstShulker);
                 int shulkerStackAmount = shulkerStackItem.getAmount();
-                if (shulkerBoxCount + shulkerStackAmount > 64)
-                {
+                if (shulkerBoxCount + shulkerStackAmount > 64) {
                     // get how many shulker boxes we need to get to 64
                     int shulkersRequired = 64 - shulkerBoxCount;
                     // remove that many boxes from the stack
@@ -81,9 +79,7 @@ public class DoubleClick
                     shulkerBoxCount += shulkersRequired;
                     // break from the loop, since we have a stack of shulkers collected
                     break;
-                }
-                else
-                {
+                } else {
                     // add the shulkerStackAmount to shulkerBoxCount
                     shulkerBoxCount += shulkerStackAmount;
                     // remove the shulkers from that slot
@@ -93,16 +89,18 @@ public class DoubleClick
             }
 
             // loop through the player's inventory
-            while (tempPlayerInventory.first(shulkerType) != -1)
-            {
+            while (tempPlayerInventory.first(shulkerType) != -1) {
                 int firstShulker = tempPlayerInventory.first(shulkerType);
 
                 // grab the inventory of the shulker box in that slot
-                Inventory shulkerInventory = ((ShulkerBox) ((BlockStateMeta) tempPlayerInventory.getItem(firstShulker).getItemMeta()).getBlockState()).getInventory();
+                Inventory shulkerInventory = ((ShulkerBox) ((BlockStateMeta) tempPlayerInventory
+                                        .getItem(firstShulker)
+                                        .getItemMeta())
+                                .getBlockState())
+                        .getInventory();
                 // if that inventory is not empty, delete it from the temporary inventory, and continue on
                 // otherwise, do the rest of the logic
-                if (!shulkerInventory.isEmpty())
-                {
+                if (!shulkerInventory.isEmpty()) {
                     // remove this non-empty shulker from the temporary inventory
                     tempPlayerInventory.setItem(firstShulker, new ItemStack(Material.AIR));
                     continue;
@@ -112,15 +110,13 @@ public class DoubleClick
                 // the loop, since that is always the last slot
                 // add the container's size to the here to offset it to the player's inventory
                 InventoryType.SlotType slotType = eventView.getSlotType(firstShulker + containerSize);
-                if (slotType.equals(InventoryType.SlotType.RESULT))
-                {
+                if (slotType.equals(InventoryType.SlotType.RESULT)) {
                     break;
                 }
                 // if the shulker box count would have gone above 64
                 ItemStack shulkerStackItem = playerInventory.getItem(firstShulker);
                 int shulkerStackAmount = shulkerStackItem.getAmount();
-                if (shulkerBoxCount + shulkerStackAmount > 64)
-                {
+                if (shulkerBoxCount + shulkerStackAmount > 64) {
                     // get how many shulker boxes we need to get to 64
                     int shulkersRequired = 64 - shulkerBoxCount;
                     // remove that many boxes from the stack
@@ -128,9 +124,7 @@ public class DoubleClick
                     shulkerBoxCount += shulkersRequired;
                     // break from the loop, since we have a stack of shulkers collected
                     break;
-                }
-                else
-                {
+                } else {
                     // add the shulkerStackAmount to shulkerBoxCount
                     shulkerBoxCount += shulkerStackAmount;
                     // remove the shulkers from that slot
@@ -141,8 +135,7 @@ public class DoubleClick
 
             // now that we have the number of shulkers to grab, put them into the cursor
             // if the shulkerBoxCount was 1, then don't do anything
-            if (shulkerBoxCount != 1)
-            {
+            if (shulkerBoxCount != 1) {
                 ItemStack newShulkers = new ItemStack(shulkerType);
                 newShulkers.setAmount(shulkerBoxCount);
                 event.getWhoClicked().setItemOnCursor(newShulkers);
@@ -151,5 +144,4 @@ public class DoubleClick
             }
         }
     }
-
 }
