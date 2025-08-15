@@ -14,6 +14,7 @@ public final class ShulkerStacking_OG extends JavaPlugin {
 
     @Override
     public void onEnable() {
+
         plugin = this;
         // Plugin startup logic
         getServer().getPluginManager().registerEvents(new ShulkerBoxStackingController(), this);
@@ -21,9 +22,13 @@ public final class ShulkerStacking_OG extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ShulkerDragHandler(), this);
         getServer().getPluginManager().registerEvents(new ShulkerDragDupePrevention(), this);
         getServer().getPluginManager().registerEvents(new ShulkerBoxHopperHandler(), this);
+
     }
 
     public static ShulkerStacking_OG getPlugin() {
+
         return plugin;
+
     }
+
 }
