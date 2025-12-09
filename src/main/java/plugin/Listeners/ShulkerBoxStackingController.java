@@ -1,15 +1,15 @@
-package me.barny1094875.shulkerstackingog.Listeners;
+package plugin.Listeners;
 
-import me.barny1094875.shulkerstackingog.ShulkerBoxHelpers.DoubleClick;
-import me.barny1094875.shulkerstackingog.ShulkerBoxHelpers.NormalLeftClick;
-import me.barny1094875.shulkerstackingog.ShulkerBoxHelpers.NormalRightClick;
-import me.barny1094875.shulkerstackingog.ShulkerBoxHelpers.ShiftRightLeftClick;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+
+import plugin.ShulkerBoxHelpers.DoubleClick;
+import plugin.ShulkerBoxHelpers.NormalLeftClick;
+import plugin.ShulkerBoxHelpers.NormalRightClick;
+import plugin.ShulkerBoxHelpers.ShiftRightLeftClick;
 
 public class ShulkerBoxStackingController implements Listener {
 
@@ -30,9 +30,8 @@ public class ShulkerBoxStackingController implements Listener {
 
         ItemStack currentItem = event.getCurrentItem();
         ItemStack cursorItem = event.getCursor();
-        Inventory inventory = event.getInventory();
 
-        // if the player combines two shulker stacks
+        // If the player combines two shulker stacks...
         if (event.getClick().equals(ClickType.LEFT)) {
 
             if (currentItem.getType().toString().contains("SHULKER_BOX")) {

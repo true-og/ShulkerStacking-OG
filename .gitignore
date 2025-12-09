@@ -20,6 +20,7 @@ atlassian-ide-plugin.xml
 .classpath
 .project
 .settings/
+bin/
 
 # Log file
 *.log

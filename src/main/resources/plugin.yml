@@ -1,5 +1,5 @@
 name: ShulkerStacking-OG
 version: '${version}'
-main: me.barny1094875.shulkerstackingog.ShulkerStacking_OG
-api-version: 1.19
-authors: [Barny1094875]
+api-version: '${apiVersion}'
+main: plugin.ShulkerStackingOG
+authors: [Barny1094875, NotAlexNoyle]

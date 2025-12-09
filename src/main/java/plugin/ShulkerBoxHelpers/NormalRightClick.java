@@ -1,4 +1,4 @@
-package me.barny1094875.shulkerstackingog.ShulkerBoxHelpers;
+package plugin.ShulkerBoxHelpers;
 
 import org.bukkit.Material;
 import org.bukkit.block.ShulkerBox;
@@ -36,6 +36,7 @@ public class NormalRightClick {
                         event.getCursor().setAmount(newCursorAmount);
 
                     }
+
                     event.setCancelled(true);
 
                 }

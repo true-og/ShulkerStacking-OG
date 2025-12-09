@@ -1,22 +1,30 @@
-package me.barny1094875.shulkerstackingog;
+package plugin;
 
 import java.util.HashMap;
 import java.util.UUID;
-import me.barny1094875.shulkerstackingog.Listeners.*;
+
 import org.bukkit.plugin.java.JavaPlugin;
 
-public final class ShulkerStacking_OG extends JavaPlugin {
+import plugin.Listeners.ShulkerBoxHopperHandler;
+import plugin.Listeners.ShulkerBoxMergeHandler;
+import plugin.Listeners.ShulkerBoxPickupHandler;
+import plugin.Listeners.ShulkerBoxStackingController;
+import plugin.Listeners.ShulkerDragDupePrevention;
+import plugin.Listeners.ShulkerDragHandler;
 
-    private static ShulkerStacking_OG plugin;
+public final class ShulkerStackingOG extends JavaPlugin {
 
-    // used to prevent dupe glitches from inventory drag events
+    private static ShulkerStackingOG plugin;
+
+    // Used to prevent duplication glitches from inventory drag events.
     public static HashMap<UUID, Boolean> isInventoryClosed = new HashMap<>();
 
     @Override
     public void onEnable() {
 
         plugin = this;
-        // Plugin startup logic
+
+        // Plugin startup logic.
         getServer().getPluginManager().registerEvents(new ShulkerBoxStackingController(), this);
         getServer().getPluginManager().registerEvents(new ShulkerBoxPickupHandler(), this);
         getServer().getPluginManager().registerEvents(new ShulkerDragHandler(), this);
@@ -26,7 +34,7 @@ public final class ShulkerStacking_OG extends JavaPlugin {
 
     }
 
-    public static ShulkerStacking_OG getPlugin() {
+    public static ShulkerStackingOG getPlugin() {
 
         return plugin;
 

@@ -1,6 +1,5 @@
-package me.barny1094875.shulkerstackingog.Listeners;
+package plugin.Listeners;
 
-import me.barny1094875.shulkerstackingog.ShulkerBoxHelpers.ShulkerBoxUtils;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -8,6 +7,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+
+import plugin.ShulkerBoxHelpers.ShulkerBoxUtils;
 
 public class ShulkerBoxPickupHandler implements Listener {
 

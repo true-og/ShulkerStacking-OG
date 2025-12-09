@@ -1,10 +1,11 @@
-package me.barny1094875.shulkerstackingog.Listeners;
+package plugin.Listeners;
 
-import me.barny1094875.shulkerstackingog.ShulkerBoxHelpers.ShulkerBoxUtils;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ItemMergeEvent;
 import org.bukkit.inventory.ItemStack;
+
+import plugin.ShulkerBoxHelpers.ShulkerBoxUtils;
 
 public class ShulkerBoxMergeHandler implements Listener {
 

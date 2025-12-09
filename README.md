@@ -11,6 +11,12 @@ Authors: Barny1094875.
 
 The resulting .jar file will be in build/libs
 
-<h3>Current Issues:</h3
-                     
-Double clicking behavior does not mimic vanilla items well.
+# Changelog:
+
+v1.1
+- Update shadow to 8.3.9
+- Update spotless to 8.1.0
+- Rename package to net.trueog.shulkerstacking-og
+- Fix shulkers getting eaten when merging
+- Fix double click behavior
+- Merge exactly like a vanilla item

@@ -1,7 +1,7 @@
-package me.barny1094875.shulkerstackingog.Listeners;
+package plugin.Listeners;
 
 import java.util.ArrayList;
-import me.barny1094875.shulkerstackingog.ShulkerStacking_OG;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -12,6 +12,8 @@ import org.bukkit.event.inventory.DragType;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+
+import plugin.ShulkerStackingOG;
 
 public class ShulkerDragHandler implements Listener {
 
@@ -24,14 +26,14 @@ public class ShulkerDragHandler implements Listener {
 
         }
 
-        // disable default behavior
+        // Disable default behavior.
         event.setCancelled(true);
 
-        Bukkit.getScheduler().runTask(ShulkerStacking_OG.getPlugin(), () -> {
+        Bukkit.getScheduler().runTask(ShulkerStackingOG.getPlugin(), () -> {
 
-            // check if the inventory was closed in the last tick
-            // this prevents a dupe glitch from occurring
-            if (ShulkerStacking_OG.isInventoryClosed.get(event.getWhoClicked().getUniqueId())) {
+            // Check if the inventory was closed in the last tick.
+            // This prevents a duplication glitch from occurring.
+            if (ShulkerStackingOG.isInventoryClosed.get(event.getWhoClicked().getUniqueId())) {
 
                 return;
 
@@ -41,17 +43,17 @@ public class ShulkerDragHandler implements Listener {
             int numberOfSlotsDragged = event.getInventorySlots().size();
             ArrayList<Integer> slotsDragged = new ArrayList<>(event.getInventorySlots().stream().toList());
             Inventory dragInventory = event.getView().getBottomInventory();
-            // right click drag
+            // Right click drag.
             if (event.getType().equals(DragType.SINGLE)) {
 
-                // if the player drags a stack of shulker boxes
+                // If the player drags a stack of shulker boxes.
                 if (shulkerBoxes.getAmount() <= 1) {
 
                     return;
 
                 }
 
-                // set each slot to the appropriate amount of shulkers
+                // Set each slot to the appropriate amount of shulkers.
                 for (int i = 0; i < numberOfSlotsDragged; i++) {
 
                     if (dragInventory.getItem(slotsDragged.get(i)) == null

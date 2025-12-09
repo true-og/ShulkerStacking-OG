@@ -1,4 +1,4 @@
-package me.barny1094875.shulkerstackingog.ShulkerBoxHelpers;
+package plugin.ShulkerBoxHelpers;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
