@@ -22,6 +22,7 @@ public final class ShulkerStacking_OG extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ShulkerDragHandler(), this);
         getServer().getPluginManager().registerEvents(new ShulkerDragDupePrevention(), this);
         getServer().getPluginManager().registerEvents(new ShulkerBoxHopperHandler(), this);
+        getServer().getPluginManager().registerEvents(new ShulkerBoxMergeHandler(), this);
 
     }
 

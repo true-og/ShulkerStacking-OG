@@ -1,5 +1,6 @@
 package me.barny1094875.shulkerstackingog.ShulkerBoxHelpers;
 
+import org.bukkit.Material;
 import org.bukkit.block.ShulkerBox;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
@@ -25,7 +26,16 @@ public class NormalRightClick {
                 if (currentItem.getAmount() < 64) {
 
                     event.getCurrentItem().setAmount(currentItem.getAmount() + 1);
-                    event.getCursor().setAmount(cursorItem.getAmount() - 1);
+                    int newCursorAmount = cursorItem.getAmount() - 1;
+                    if (newCursorAmount <= 0) {
+
+                        event.getWhoClicked().setItemOnCursor(new ItemStack(Material.AIR));
+
+                    } else {
+
+                        event.getCursor().setAmount(newCursorAmount);
+
+                    }
                     event.setCancelled(true);
 
                 }

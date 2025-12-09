@@ -1,15 +1,11 @@
 package me.barny1094875.shulkerstackingog.Listeners;
 
-import me.barny1094875.shulkerstackingog.ShulkerStacking_OG;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.block.ShulkerBox;
+import me.barny1094875.shulkerstackingog.ShulkerBoxHelpers.ShulkerBoxUtils;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.BlockStateMeta;
 
 public class ShulkerBoxHopperHandler implements Listener {
 
@@ -19,72 +15,44 @@ public class ShulkerBoxHopperHandler implements Listener {
         ItemStack eventItem = event.getItem();
         Inventory eventDestination = event.getDestination();
         Inventory eventSource = event.getSource();
-        // if the item is a shulker box
-        if (eventItem.getType().toString().contains("SHULKER_BOX")) {
+        if (!ShulkerBoxUtils.isEmptyShulkerBox(eventItem)) {
 
-            // check that the shulker box is empty
-            BlockStateMeta shulkerMeta = (BlockStateMeta) eventItem.getItemMeta();
-            ShulkerBox shulker = (ShulkerBox) shulkerMeta.getBlockState();
-            if (!shulker.getInventory().isEmpty()) {
+            return;
 
-                return;
+        }
 
-            }
+        event.setCancelled(true);
 
-            // cancel the event so that I can guarantee where the item will be
-            event.setCancelled(true);
-            // item is always in eventSource now
+        int toMove = eventItem.getAmount();
+        for (int i = 0; i < eventSource.getSize() && toMove > 0; i++) {
 
-            Material shulkerType = eventItem.getType();
-            // loop through the destination to see if there is a shulker box stack to add to
-            for (int i = 0; i < eventDestination.getSize(); i++) {
+            ItemStack sourceItem = eventSource.getItem(i);
+            if (!ShulkerBoxUtils.isEmptyShulkerBox(sourceItem)) {
 
-                ItemStack destinationItem = eventDestination.getItem(i);
-                if (destinationItem == null) {
-
-                    continue;
-
-                }
-
-                // if the item is the right kind of shulker box
-                if (destinationItem.getType().equals(shulkerType)) {
-
-                    // check that the shulker boxes are emtpy
-                    BlockStateMeta destinationShulkerMeta = (BlockStateMeta) destinationItem.getItemMeta();
-                    ShulkerBox destinationShulker = (ShulkerBox) destinationShulkerMeta.getBlockState();
-                    if (!destinationShulker.getInventory().isEmpty()) {
-
-                        continue;
-
-                    }
-
-                    // check that the item stack is not full
-                    if (destinationItem.getAmount() > 63) {
-
-                        continue;
-
-                    }
-
-                    destinationItem.setAmount(destinationItem.getAmount() + 1);
-                    Bukkit.getScheduler().runTaskLater(ShulkerStacking_OG.getPlugin(), () -> {
-
-                        eventItem.setAmount(eventItem.getAmount() - 1);
-
-                    }, 1);
-                    return;
-
-                }
+                continue;
 
             }
 
-            // if no shulker box was found, try to put it in the first empty slot
-            if (eventDestination.addItem(eventItem).isEmpty()) {
+            if (!sourceItem.getType().equals(eventItem.getType())) {
 
-                Bukkit.getScheduler().runTaskLater(ShulkerStacking_OG.getPlugin(), () -> {
+                continue;
 
-                    eventItem.setAmount(eventItem.getAmount() - 1);
+            }
 
-                }, 1);
+            int moveAmount = Math.min(sourceItem.getAmount(), toMove);
+            int remaining = ShulkerBoxUtils.mergeIntoExistingStacks(eventDestination, eventItem, moveAmount);
+            remaining = ShulkerBoxUtils.fillEmptySlots(eventDestination, eventItem, remaining);
+
+            int moved = moveAmount - remaining;
+            if (moved > 0) {
+
+                sourceItem.setAmount(sourceItem.getAmount() - moved);
+                toMove -= moved;
+                if (sourceItem.getAmount() <= 0) {
+
+                    eventSource.setItem(i, null);
+
+                }
 
             }
 

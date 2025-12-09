@@ -1,5 +1,6 @@
 package me.barny1094875.shulkerstackingog.ShulkerBoxHelpers;
 
+import org.bukkit.Material;
 import org.bukkit.block.ShulkerBox;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
@@ -27,7 +28,7 @@ public class NormalLeftClick {
                     // add the shulker itemStacks together
                     event.getCurrentItem()
                             .setAmount(event.getCursor().getAmount() + event.getCurrentItem().getAmount());
-                    event.getWhoClicked().getItemOnCursor().setAmount(0);
+                    event.getWhoClicked().setItemOnCursor(new ItemStack(Material.AIR));
 
                 } else {
 
