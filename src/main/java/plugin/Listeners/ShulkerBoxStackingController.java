@@ -1,6 +1,11 @@
 package plugin.Listeners;
 
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.entity.HumanEntity;
+import org.bukkit.entity.Item;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -10,125 +15,141 @@ import plugin.ShulkerBoxHelpers.DoubleClick;
 import plugin.ShulkerBoxHelpers.NormalLeftClick;
 import plugin.ShulkerBoxHelpers.NormalRightClick;
 import plugin.ShulkerBoxHelpers.ShiftRightLeftClick;
+import plugin.ShulkerBoxHelpers.ShulkerBoxUtils;
 
 public class ShulkerBoxStackingController implements Listener {
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void shulkerBoxStacking(InventoryClickEvent event) {
-
-        if (event.getCurrentItem() == null) {
-
-            return;
-
-        }
-
-        if (event.getCursor() == null) {
-
-            return;
-
-        }
 
         ItemStack currentItem = event.getCurrentItem();
         ItemStack cursorItem = event.getCursor();
+        ClickType click = event.getClick();
 
-        // If the player combines two shulker stacks...
-        if (event.getClick().equals(ClickType.LEFT)) {
+        boolean currentIsShulker = ShulkerBoxUtils.isShulkerBoxMaterial(currentItem);
+        boolean cursorIsShulker = ShulkerBoxUtils.isShulkerBoxMaterial(cursorItem);
 
-            if (currentItem.getType().toString().contains("SHULKER_BOX")) {
+        if (click.equals(ClickType.LEFT) && currentIsShulker && cursorIsShulker
+                && currentItem.getType().equals(cursorItem.getType()))
+        {
 
-                if (cursorItem.getType().equals(currentItem.getType())) {
+            if (ShulkerBoxUtils.isEmptyShulkerBox(currentItem) && ShulkerBoxUtils.isEmptyShulkerBox(cursorItem)) {
 
-                    NormalLeftClick.NormalLeftClickShulkerBox(currentItem, cursorItem, event);
-                    return;
+                NormalLeftClick.NormalLeftClickShulkerBox(currentItem, cursorItem, event);
 
-                }
+            } else {
 
-            }
-
-        }
-
-        // if the player sets down just one shulker box from a stack
-        if (event.getClick().equals(ClickType.RIGHT)) {
-
-            if (currentItem.getType().toString().contains("SHULKER_BOX")) {
-
-                if (cursorItem.getType().equals(currentItem.getType())) {
-
-                    NormalRightClick.NormalRightClickShulkerBox(currentItem, cursorItem, event);
-
-                }
+                // Filled shulkers cannot use vanilla NBT stacking.
+                event.setCancelled(true);
 
             }
 
+            return;
+
         }
 
-        // if the player puts down a shulker box stack
-        if (event.getClick().equals(ClickType.LEFT)) {
+        if (click.equals(ClickType.RIGHT) && currentIsShulker && cursorIsShulker
+                && currentItem.getType().equals(cursorItem.getType()))
+        {
 
-            if (cursorItem.getType().toString().contains("SHULKER_BOX")) {
+            if (ShulkerBoxUtils.isEmptyShulkerBox(currentItem) && ShulkerBoxUtils.isEmptyShulkerBox(cursorItem)) {
 
-                // check if the shulker box stack only contains one shulker box
-                if (cursorItem.getAmount() != 1) {
+                NormalRightClick.NormalRightClickShulkerBox(currentItem, cursorItem, event);
 
-                    // remove the stack from their cursor
-                    // and replace it with whatever was in the slot
-                    event.getWhoClicked().setItemOnCursor(currentItem);
-                    // place down the whole stack
-                    event.setCurrentItem(cursorItem);
-                    // stop default behaviors
-                    event.setCancelled(true);
-                    return;
+            } else {
 
-                }
+                event.setCancelled(true);
 
             }
 
+            return;
+
         }
 
-        // if the player double clicked in the inventory on a shulker box
-        // gather all of the shulker boxes in the inventory to the player's cursor
-        // including in their inventory
+        // Place the whole empty cursor stack into air or a non-shulker slot.
+        if (click.equals(ClickType.LEFT) && cursorIsShulker && cursorItem.getAmount() > 1) {
 
-        if (event.getClick().equals(ClickType.DOUBLE_CLICK)) {
+            if (!ShulkerBoxUtils.isEmptyShulkerBox(cursorItem)) {
 
-            if (cursorItem.getType().toString().contains("SHULKER_BOX")) {
-
-                DoubleClick.DoubleClickShulkerBox(cursorItem, event);
                 return;
 
             }
 
+            if (currentItem == null || currentItem.getType() == Material.AIR) {
+
+                event.setCurrentItem(cursorItem);
+                event.getWhoClicked().setItemOnCursor(new ItemStack(Material.AIR));
+                event.setCancelled(true);
+
+            } else if (!currentIsShulker) {
+
+                event.getWhoClicked().setItemOnCursor(currentItem);
+                event.setCurrentItem(cursorItem);
+                event.setCancelled(true);
+
+            }
+
+            return;
+
         }
 
-        // if the player shift clicks on a shukler box stack
-        // we need to handle the stacking logic
-        if (event.getClick().equals(ClickType.SHIFT_LEFT) || event.getClick().equals(ClickType.SHIFT_RIGHT)) {
+        if (click.equals(ClickType.DOUBLE_CLICK) && cursorIsShulker) {
 
-            if (currentItem.getType().toString().contains("SHULKER_BOX")) {
+            if (ShulkerBoxUtils.isEmptyShulkerBox(cursorItem)) {
+
+                DoubleClick.DoubleClickShulkerBox(cursorItem, event);
+
+            }
+
+            return;
+
+        }
+
+        if ((click.equals(ClickType.SHIFT_LEFT) || click.equals(ClickType.SHIFT_RIGHT)) && currentIsShulker) {
+
+            if (ShulkerBoxUtils.isEmptyShulkerBox(currentItem)) {
 
                 ShiftRightLeftClick.ShiftRightLeftClickShulkerBox(event);
 
             }
 
+            return;
+
         }
 
-        // if the player users CTRL+<drop> on the shulkers
-        // drop the whole stack, instead of just one
-        if (event.getClick().equals(ClickType.CONTROL_DROP)) {
+        // Drop the whole empty stack; vanilla correctly drops filled single boxes.
+        if (click.equals(ClickType.CONTROL_DROP) && currentIsShulker && currentItem.getAmount() > 1) {
 
-            if (currentItem.getType().toString().contains("SHULKER_BOX")) {
+            if (!ShulkerBoxUtils.isEmptyShulkerBox(currentItem)) {
 
-                event.getWhoClicked().getWorld().dropItem(event.getWhoClicked().getLocation(), event.getCurrentItem(),
-                        (Item) ->
-                        {
-
-                            Item.setVelocity(
-                                    event.getWhoClicked().getLocation().getDirection().multiply(0.35).setY(0.25));
-
-                        });
-                event.getCurrentItem().setAmount(0);
+                return;
 
             }
+
+            event.setCancelled(true);
+            HumanEntity who = event.getWhoClicked();
+            Location dropLoc = who.getLocation();
+            ItemStack dropStack = currentItem.clone();
+            Item dropped = who.getWorld().dropItem(dropLoc, dropStack, (Item entity) -> {
+
+                entity.setVelocity(dropLoc.getDirection().multiply(0.35).setY(0.25));
+
+            });
+            // Clear the slot only if ItemSpawnEvent allowed the drop entity.
+            if (dropped != null && dropped.isValid() && !dropped.isDead()) {
+
+                event.setCurrentItem(new ItemStack(Material.AIR));
+
+            }
+
+            return;
+
+        }
+
+        // Block creative middle-clone because empty shulkers would be synthesized.
+        if (click.equals(ClickType.MIDDLE) && currentIsShulker) {
+
+            event.setCancelled(true);
 
         }
 

@@ -12,8 +12,7 @@ public class NormalLeftClick {
             InventoryClickEvent event)
     {
 
-        // check that both shulker boxes are empty
-        // get the inventories of the shulker boxes
+        // Read both inventories before stacking empty shulkers.
         BlockStateMeta shulker1Meta = (BlockStateMeta) currentItem.getItemMeta();
         BlockStateMeta shulker2Meta = (BlockStateMeta) cursorItem.getItemMeta();
         ShulkerBox shulker1 = (ShulkerBox) shulker1Meta.getBlockState();
@@ -32,7 +31,7 @@ public class NormalLeftClick {
 
                 } else {
 
-                    // add the shulkers until we are at 64
+                    // Add shulkers until the target reaches 64.
                     event.getWhoClicked().getItemOnCursor()
                             .setAmount((currentItem.getAmount() + cursorItem.getAmount()) - 64);
                     event.getCurrentItem().setAmount(64);

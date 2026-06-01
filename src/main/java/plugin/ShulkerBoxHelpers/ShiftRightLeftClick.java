@@ -1,6 +1,5 @@
 package plugin.ShulkerBoxHelpers;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
@@ -12,298 +11,105 @@ public class ShiftRightLeftClick {
 
     public static void ShiftRightLeftClickShulkerBox(InventoryClickEvent event) {
 
-        // check what kind of inventory was shift-clicked in
-        // regardless, loop through the inventory(ies) and add the
-        // shulker box stack to the
-        InventoryView eventInventory = event.getView();
-        InventoryType inventoryType = eventInventory.getType();
-        Inventory containerInventory = eventInventory.getTopInventory();
-        Inventory playerInventory = eventInventory.getBottomInventory();
-        // store a temporary inventory so that we can handle
-        // full shulker boxes
-        Inventory tempPlayerInventory = Bukkit.createInventory(null, 36);
-        tempPlayerInventory.setContents(playerInventory.getContents());
-        // make the inventory size the max of 54 so that it will hold any size inventory
-        Inventory tempContainerInventory = Bukkit.createInventory(null, 54);
-        tempContainerInventory.setContents(containerInventory.getContents());
-        Material shulkerBoxType = event.getCurrentItem().getType();
-        int shulkerStackAmount = event.getCurrentItem().getAmount();
+        ItemStack source = event.getCurrentItem();
+        if (!ShulkerBoxUtils.isEmptyShulkerBox(source)) {
 
-        // if it was the player's inventory
-        if (inventoryType.equals(InventoryType.CRAFTING)) {
-
-            // check if the slot was a hotbar slot or not
-            if (event.getSlotType().equals(InventoryType.SlotType.QUICKBAR)) {
-
-                // remove the hotbar of the tempInventory
-                for (int i = 0; i < 9; i++) {
-
-                    tempPlayerInventory.setItem(i, new ItemStack(Material.AIR));
-
-                }
-
-                // check the top part of the inventory for any shulker stacks that are not 64
-                // yet
-                while (tempPlayerInventory.first(shulkerBoxType) != -1) {
-
-                    int firstShulkerSlot = tempPlayerInventory.first(shulkerBoxType);
-                    ItemStack shulkerStack = tempPlayerInventory.getItem(firstShulkerSlot);
-                    // if the shulker stack has 64 shulker boxes in it
-                    // remove it from the temporary inventory and continue on
-                    if (shulkerStack.getAmount() >= 64) {
-
-                        tempPlayerInventory.setItem(firstShulkerSlot, new ItemStack(Material.AIR));
-                        continue;
-
-                    }
-
-                    // cancel default behavior since shulker boxes are being moved
-                    event.setCancelled(true);
-
-                    // stack up to 64 shulkers into the stack, and then continue on
-                    if (shulkerStack.getAmount() + shulkerStackAmount <= 64) {
-
-                        playerInventory.getItem(firstShulkerSlot)
-                                .setAmount(shulkerStack.getAmount() + shulkerStackAmount);
-                        shulkerStackAmount = 0;
-                        break;
-
-                    } else {
-
-                        // remove shulker boxes until the shulker stack has 64 boxes
-                        shulkerStackAmount -= 64 - shulkerStack.getAmount();
-                        playerInventory.getItem(firstShulkerSlot).setAmount(64);
-                        tempPlayerInventory.setItem(firstShulkerSlot, new ItemStack(Material.AIR));
-
-                    }
-
-                }
-
-                // change the shulker stack amount to what is left
-                // or remove it if nothing is left
-                if (shulkerStackAmount == 0) {
-
-                    event.setCurrentItem(new ItemStack(Material.AIR));
-
-                } else {
-
-                    event.getCurrentItem().setAmount(shulkerStackAmount);
-                    // look for an air gap to put the rest of the shulker boxes
-                    for (int i = 9; i < playerInventory.getSize(); i++) {
-
-                        if (playerInventory.getItem(i) == null) {
-
-                            playerInventory.setItem(i, event.getCurrentItem());
-                            event.setCurrentItem(new ItemStack(Material.AIR));
-
-                        }
-
-                    }
-
-                }
-
-            }
-            // the slot was an inventory slot, so check the hotbar for boxes
-            else {
-
-                // remove everything from the upper inventory to prevent it from causing
-                // problems
-                for (int i = 35; i > 8; i--) {
-
-                    tempPlayerInventory.setItem(i, new ItemStack(Material.AIR));
-
-                }
-
-                while (tempPlayerInventory.first(shulkerBoxType) != -1) {
-
-                    int firstShulkerSlot = tempPlayerInventory.first(shulkerBoxType);
-                    ItemStack shulkerStack = tempPlayerInventory.getItem(firstShulkerSlot);
-                    // if the shulker stack has 64 shulker boxes in it
-                    // remove it from the temporary inventory and continue on
-                    if (shulkerStack.getAmount() >= 64) {
-
-                        tempPlayerInventory.setItem(firstShulkerSlot, new ItemStack(Material.AIR));
-                        continue;
-
-                    }
-
-                    // cancel default behavior since shulker boxes are being moved
-                    event.setCancelled(true);
-
-                    // stack up to 64 shulkers into the stack, and then continue on
-                    if (shulkerStack.getAmount() + shulkerStackAmount <= 64) {
-
-                        playerInventory.getItem(firstShulkerSlot)
-                                .setAmount(shulkerStack.getAmount() + shulkerStackAmount);
-                        shulkerStackAmount = 0;
-                        break;
-
-                    } else {
-
-                        // remove shulker boxes until the shulker stack has 64 boxes
-                        shulkerStackAmount -= 64 - shulkerStack.getAmount();
-                        playerInventory.getItem(firstShulkerSlot).setAmount(64);
-                        tempPlayerInventory.setItem(firstShulkerSlot, new ItemStack(Material.AIR));
-
-                    }
-
-                }
-
-                // change the shulker stack amount to what is left
-                // or remove it if nothing is left
-                if (shulkerStackAmount == 0) {
-
-                    event.setCurrentItem(new ItemStack(Material.AIR));
-
-                } else {
-
-                    event.getCurrentItem().setAmount(shulkerStackAmount);
-                    // look for an air gap to put the rest of the shulker boxes
-                    for (int i = 0; i < 9; i++) {
-
-                        if (playerInventory.getItem(i) == null) {
-
-                            playerInventory.setItem(i, event.getCurrentItem());
-                            event.setCurrentItem(new ItemStack(Material.AIR));
-
-                        }
-
-                    }
-
-                }
-
-            }
+            return;
 
         }
-        // if it was anything else
-        else {
 
-            // check if the click was in the bottom
-            if (event.getRawSlot() > containerInventory.getSize()) {
+        InventoryView view = event.getView();
+        Inventory top = view.getTopInventory();
+        Inventory bottom = view.getBottomInventory();
+        InventoryType viewType = view.getType();
+        Material shulkerType = source.getType();
+        int rawSlot = event.getRawSlot();
+        int topSize = top.getSize();
+        boolean clickedTop = rawSlot < topSize;
 
-                while (tempContainerInventory.first(shulkerBoxType) != -1) {
+        // Cancel default handling before redistributing the stack.
+        event.setCancelled(true);
 
-                    int firstShulkerSlot = tempContainerInventory.first(shulkerBoxType);
-                    ItemStack shulkerStack = tempContainerInventory.getItem(firstShulkerSlot);
-                    // if the shulker stack has 64 shulker boxes in it
-                    // remove it from the temporary inventory and continue on
-                    if (shulkerStack.getAmount() >= 64) {
+        int remaining = source.getAmount();
 
-                        tempContainerInventory.setItem(firstShulkerSlot, new ItemStack(Material.AIR));
-                        continue;
+        if (viewType.equals(InventoryType.CRAFTING)) {
 
-                    }
+            // Without a container open, shift within storage slots 0-35 only.
+            boolean fromHotbar = event.getSlotType().equals(InventoryType.SlotType.QUICKBAR);
+            int destStart = fromHotbar ? 9 : 0;
+            int destEnd = fromHotbar ? Math.min(bottom.getSize(), 36) : 9;
+            remaining = redistribute(bottom, destStart, destEnd, shulkerType, remaining);
 
-                    // cancel default behavior since shulker boxes are being moved
-                    event.setCancelled(true);
+        } else {
 
-                    // stack up to 64 shulkers into the stack, and then continue on
-                    if (shulkerStack.getAmount() + shulkerStackAmount <= 64) {
-
-                        containerInventory.getItem(firstShulkerSlot)
-                                .setAmount(shulkerStack.getAmount() + shulkerStackAmount);
-                        shulkerStackAmount = 0;
-                        break;
-
-                    } else {
-
-                        // remove shulker boxes until the shulker stack has 64 boxes
-                        shulkerStackAmount -= 64 - shulkerStack.getAmount();
-                        containerInventory.getItem(firstShulkerSlot).setAmount(64);
-                        tempContainerInventory.setItem(firstShulkerSlot, new ItemStack(Material.AIR));
-
-                    }
-
-                }
-
-                // change the shulker stack amount to what is left
-                // or remove it if nothing is left
-                if (shulkerStackAmount == 0) {
-
-                    event.setCurrentItem(new ItemStack(Material.AIR));
-
-                } else {
-
-                    event.getCurrentItem().setAmount(shulkerStackAmount);
-                    // look for an air gap to put the rest of the shulker boxes
-                    for (int i = 0; i < containerInventory.getSize(); i++) {
-
-                        if (containerInventory.getItem(i) == null) {
-
-                            containerInventory.setItem(i, event.getCurrentItem());
-                            event.setCurrentItem(new ItemStack(Material.AIR));
-
-                        }
-
-                    }
-
-                }
-
-            }
-            // the click was in the top inventory
-            else {
-
-                while (tempPlayerInventory.first(shulkerBoxType) != -1) {
-
-                    int firstShulkerSlot = tempPlayerInventory.first(shulkerBoxType);
-                    ItemStack shulkerStack = tempPlayerInventory.getItem(firstShulkerSlot);
-                    // if the shulker stack has 64 shulker boxes in it
-                    // remove it from the temporary inventory and continue on
-                    if (shulkerStack.getAmount() >= 64) {
-
-                        tempPlayerInventory.setItem(firstShulkerSlot, new ItemStack(Material.AIR));
-                        continue;
-
-                    }
-
-                    // cancel default behavior since shulker boxes are being moved
-                    event.setCancelled(true);
-
-                    // stack up to 64 shulkers into the stack, and then continue on
-                    if (shulkerStack.getAmount() + shulkerStackAmount <= 64) {
-
-                        playerInventory.getItem(firstShulkerSlot)
-                                .setAmount(shulkerStack.getAmount() + shulkerStackAmount);
-                        shulkerStackAmount = 0;
-                        break;
-
-                    } else {
-
-                        // remove shulker boxes until the shulker stack has 64 boxes
-                        shulkerStackAmount -= 64 - shulkerStack.getAmount();
-                        playerInventory.getItem(firstShulkerSlot).setAmount(64);
-                        tempPlayerInventory.setItem(firstShulkerSlot, new ItemStack(Material.AIR));
-
-                    }
-
-                }
-
-                // change the shulker stack amount to what is left
-                // or remove it if nothing is left
-                if (shulkerStackAmount == 0) {
-
-                    event.setCurrentItem(new ItemStack(Material.AIR));
-
-                } else {
-
-                    event.getCurrentItem().setAmount(shulkerStackAmount);
-                    // look for an air gap to put the rest of the shulker boxes
-                    for (int i = 0; i < playerInventory.getSize(); i++) {
-
-                        if (playerInventory.getItem(i) == null) {
-
-                            playerInventory.setItem(i, event.getCurrentItem());
-                            event.setCurrentItem(new ItemStack(Material.AIR));
-
-                        }
-
-                    }
-
-                }
-
-            }
+            Inventory destination = clickedTop ? bottom : top;
+            int destStart = 0;
+            // Limit player destinations to storage slots 0-35, including non-vanilla views.
+            int destEnd = (destination == bottom) ? Math.min(destination.getSize(), 36) : destination.getSize();
+            remaining = redistribute(destination, destStart, destEnd, shulkerType, remaining);
 
         }
+
+        if (remaining <= 0) {
+
+            event.setCurrentItem(new ItemStack(Material.AIR));
+
+        } else {
+
+            event.setCurrentItem(new ItemStack(shulkerType, remaining));
+
+        }
+
+    }
+
+    private static int redistribute(Inventory inv, int start, int end, Material shulkerType, int amount) {
+
+        // Phase 1: top off existing empty stacks of the same material.
+        for (int i = start; i < end && amount > 0; i++) {
+
+            ItemStack slot = inv.getItem(i);
+            if (!ShulkerBoxUtils.isEmptyShulkerBox(slot)) {
+
+                continue;
+
+            }
+
+            if (!slot.getType().equals(shulkerType)) {
+
+                continue;
+
+            }
+
+            int space = 64 - slot.getAmount();
+            if (space <= 0) {
+
+                continue;
+
+            }
+
+            int moved = Math.min(space, amount);
+            slot.setAmount(slot.getAmount() + moved);
+            amount -= moved;
+
+        }
+
+        // Phase 2: drop leftovers into AIR slots, one stack at a time.
+        for (int i = start; i < end && amount > 0; i++) {
+
+            ItemStack slot = inv.getItem(i);
+            if (slot != null && slot.getType() != Material.AIR) {
+
+                continue;
+
+            }
+
+            int placed = Math.min(64, amount);
+            inv.setItem(i, new ItemStack(shulkerType, placed));
+            amount -= placed;
+
+        }
+
+        return amount;
 
     }
 

@@ -1,6 +1,7 @@
 package plugin.Listeners;
 
-import java.util.ArrayList;
+import java.util.Set;
+import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -11,131 +12,204 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.DragType;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 
+import plugin.ShulkerBoxHelpers.ShulkerBoxUtils;
 import plugin.ShulkerStackingOG;
 
 public class ShulkerDragHandler implements Listener {
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void shulkerBoxDrag(InventoryDragEvent event) {
 
-        if (!event.getOldCursor().getType().toString().contains("SHULKER_BOX")) {
+        ItemStack cursor = event.getOldCursor();
+        if (!ShulkerBoxUtils.isShulkerBoxMaterial(cursor)) {
 
             return;
 
         }
 
-        // Disable default behavior.
+        // Cancel leaked filled stacks before vanilla can split duplicate NBT.
+        if (!ShulkerBoxUtils.isEmptyShulkerBox(cursor)) {
+
+            if (cursor.getAmount() > 1) {
+
+                event.setCancelled(true);
+
+            }
+
+            return;
+
+        }
+
         event.setCancelled(true);
+
+        final int total = cursor.getAmount();
+        if (total < 1) {
+
+            return;
+
+        }
+
+        final Material shulkerType = cursor.getType();
+        final DragType dragType = event.getType();
+        final Set<Integer> rawSlots = event.getRawSlots();
+        final int slotCount = rawSlots.size();
+        if (slotCount == 0) {
+
+            return;
+
+        }
+
+        final int perSlot;
+        if (dragType.equals(DragType.SINGLE)) {
+
+            perSlot = 1;
+
+        } else if (dragType.equals(DragType.EVEN)) {
+
+            perSlot = total / slotCount;
+
+        } else {
+
+            return;
+
+        }
+
+        if (perSlot <= 0) {
+
+            return;
+
+        }
+
+        final InventoryView view = event.getView();
 
         Bukkit.getScheduler().runTask(ShulkerStackingOG.getPlugin(), () -> {
 
-            // Check if the inventory was closed in the last tick.
-            // This prevents a duplication glitch from occurring.
-            if (ShulkerStackingOG.isInventoryClosed.get(event.getWhoClicked().getUniqueId())) {
+            // Skip if inventory just closed: vanilla already ejected cursor contents.
+            Boolean closed = ShulkerStackingOG.isInventoryClosed.get(event.getWhoClicked().getUniqueId());
+            if (closed != null && closed) {
 
                 return;
 
             }
 
-            ItemStack shulkerBoxes = event.getOldCursor();
-            int numberOfSlotsDragged = event.getInventorySlots().size();
-            ArrayList<Integer> slotsDragged = new ArrayList<>(event.getInventorySlots().stream().toList());
-            Inventory dragInventory = event.getView().getBottomInventory();
-            // Right click drag.
-            if (event.getType().equals(DragType.SINGLE)) {
+            // Abort if vanilla dropped the cursor while the player went offline.
+            if (!(event.getWhoClicked() instanceof Player player) || !player.isOnline()) {
 
-                // If the player drags a stack of shulker boxes.
-                if (shulkerBoxes.getAmount() <= 1) {
-
-                    return;
-
-                }
-
-                // Set each slot to the appropriate amount of shulkers.
-                for (int i = 0; i < numberOfSlotsDragged; i++) {
-
-                    if (dragInventory.getItem(slotsDragged.get(i)) == null
-                            || dragInventory.getItem(slotsDragged.get(i)).getType() == Material.AIR)
-                    {
-
-                        dragInventory.setItem(slotsDragged.get(i), new ItemStack(shulkerBoxes.getType(), 1));
-
-                    } else if (dragInventory.getItem(slotsDragged.get(i)) != null
-                            && dragInventory.getItem(slotsDragged.get(i)).getType().equals(shulkerBoxes.getType()))
-                    {
-
-                        dragInventory.getItem(slotsDragged.get(i))
-                                .setAmount(dragInventory.getItem(slotsDragged.get(i)).getAmount() + 1);
-
-                    }
-
-                }
-
-                // remove the shulker boxes from the player's cursor
-                event.getWhoClicked().setItemOnCursor(
-                        new ItemStack(shulkerBoxes.getType(), shulkerBoxes.getAmount() - numberOfSlotsDragged));
+                return;
 
             }
-            // left click drag
-            else if (event.getType().equals(DragType.EVEN)) {
 
-                // if the player drags a stack of shulker boxes
-                if (shulkerBoxes.getAmount() <= 1) {
+            // Abort if a Q-drop, hotbar swap, or outside-click changed the cursor.
+            ItemStack live = player.getItemOnCursor();
+            if (!ShulkerBoxUtils.isEmptyShulkerBox(live) || !live.getType().equals(shulkerType)
+                    || live.getAmount() < total)
+            {
 
-                    return;
+                return;
 
-                }
+            }
 
-                // set each slot to the appropriate amount of shulkers
-                for (int i = 0; i < numberOfSlotsDragged; i++) {
+            // Increment before slot writes so exceptions bias toward loss, not duplication.
+            int[] placedRef = new int[] { 0 };
+            int[] pendingRef = new int[] { 0 };
+            try {
 
-                    if (dragInventory.getItem(slotsDragged.get(i)) == null
-                            || dragInventory.getItem(slotsDragged.get(i)).getType() == Material.AIR)
-                    {
+                for (Integer rawSlot : rawSlots) {
 
-                        ItemStack newShulkerBoxes = new ItemStack(shulkerBoxes.getType(),
-                                shulkerBoxes.getAmount() / numberOfSlotsDragged);
-                        dragInventory.setItem(slotsDragged.get(i), newShulkerBoxes);
-                        if (newShulkerBoxes.getAmount() > 64) {
+                    if (placedRef[0] >= total) {
 
-                            shulkerBoxes.setAmount(shulkerBoxes.getAmount() - (64 - shulkerBoxes.getAmount()));
-                            newShulkerBoxes.setAmount(64);
-                            slotsDragged.remove(i);
-                            break;
-
-                        }
-
-                        dragInventory.setItem(slotsDragged.get(i), newShulkerBoxes);
-
-                    } else if (dragInventory.getItem(slotsDragged.get(i)) != null
-                            && dragInventory.getItem(slotsDragged.get(i)).getType().equals(shulkerBoxes.getType()))
-                    {
-
-                        ItemStack newShulkerBoxes = new ItemStack(shulkerBoxes.getType(),
-                                shulkerBoxes.getAmount() / numberOfSlotsDragged);
-                        dragInventory.getItem(slotsDragged.get(i))
-                                .setAmount(dragInventory.getItem(slotsDragged.get(i)).getAmount()
-                                        + shulkerBoxes.getAmount() / numberOfSlotsDragged);
-                        if (newShulkerBoxes.getAmount() > 64) {
-
-                            shulkerBoxes.setAmount(shulkerBoxes.getAmount() - (64 - shulkerBoxes.getAmount()));
-                            newShulkerBoxes.setAmount(64);
-                            slotsDragged.remove(i);
-                            break;
-
-                        }
-
-                        dragInventory.setItem(slotsDragged.get(i), newShulkerBoxes);
+                        break;
 
                     }
 
+                    Inventory targetInv = view.getInventory(rawSlot);
+                    if (targetInv == null) {
+
+                        continue;
+
+                    }
+
+                    int slotIdx = view.convertSlot(rawSlot);
+                    if (slotIdx < 0 || slotIdx >= targetInv.getSize()) {
+
+                        continue;
+
+                    }
+
+                    ItemStack existing = targetInv.getItem(slotIdx);
+
+                    int desired = Math.min(perSlot, total - placedRef[0]);
+
+                    if (existing == null || existing.getType() == Material.AIR) {
+
+                        int toPlace = Math.min(desired, 64);
+                        pendingRef[0] = toPlace;
+                        placedRef[0] += toPlace;
+                        targetInv.setItem(slotIdx, new ItemStack(shulkerType, toPlace));
+                        pendingRef[0] = 0;
+                        continue;
+
+                    }
+
+                    if (!ShulkerBoxUtils.isEmptyShulkerBox(existing)) {
+
+                        continue;
+
+                    }
+
+                    if (!existing.getType().equals(shulkerType)) {
+
+                        continue;
+
+                    }
+
+                    int space = 64 - existing.getAmount();
+                    if (space <= 0) {
+
+                        continue;
+
+                    }
+
+                    int toAdd = Math.min(desired, space);
+                    pendingRef[0] = toAdd;
+                    placedRef[0] += toAdd;
+                    existing.setAmount(existing.getAmount() + toAdd);
+                    targetInv.setItem(slotIdx, existing);
+                    pendingRef[0] = 0;
+
                 }
 
-                event.getWhoClicked().setItemOnCursor(
-                        new ItemStack(shulkerBoxes.getType(), shulkerBoxes.getAmount() % numberOfSlotsDragged));
-                ((Player) event.getWhoClicked()).updateInventory();
+            } catch (RuntimeException exception) {
+
+                if (pendingRef[0] > 0) {
+
+                    ShulkerStackingOG.getPlugin().getLogger().log(Level.SEVERE,
+                            "Suspected loss of up to " + pendingRef[0] + " " + shulkerType
+                                    + " shulker boxes during an inventory drag for " + player.getName() + " ("
+                                    + player.getUniqueId() + ").",
+                            exception);
+
+                }
+
+                throw exception;
+
+            } finally {
+
+                int leftover = total - placedRef[0];
+                if (leftover <= 0) {
+
+                    player.setItemOnCursor(new ItemStack(Material.AIR));
+
+                } else {
+
+                    player.setItemOnCursor(new ItemStack(shulkerType, leftover));
+
+                }
+
+                player.updateInventory();
 
             }
 

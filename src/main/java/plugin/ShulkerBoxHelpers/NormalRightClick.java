@@ -12,8 +12,7 @@ public class NormalRightClick {
             InventoryClickEvent event)
     {
 
-        // check that both shulker boxes are empty
-        // get the inventories of the shulker boxes
+        // Read both inventories before stacking empty shulkers.
         BlockStateMeta shulker1Meta = (BlockStateMeta) currentItem.getItemMeta();
         BlockStateMeta shulker2Meta = (BlockStateMeta) cursorItem.getItemMeta();
         ShulkerBox shulker1 = (ShulkerBox) shulker1Meta.getBlockState();

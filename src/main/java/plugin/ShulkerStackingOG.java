@@ -9,6 +9,7 @@ import plugin.Listeners.ShulkerBoxHopperHandler;
 import plugin.Listeners.ShulkerBoxMergeHandler;
 import plugin.Listeners.ShulkerBoxPickupHandler;
 import plugin.Listeners.ShulkerBoxStackingController;
+import plugin.Listeners.ShulkerCleanupHandler;
 import plugin.Listeners.ShulkerDragDupePrevention;
 import plugin.Listeners.ShulkerDragHandler;
 
@@ -31,6 +32,7 @@ public final class ShulkerStackingOG extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ShulkerDragDupePrevention(), this);
         getServer().getPluginManager().registerEvents(new ShulkerBoxHopperHandler(), this);
         getServer().getPluginManager().registerEvents(new ShulkerBoxMergeHandler(), this);
+        getServer().getPluginManager().registerEvents(new ShulkerCleanupHandler(), this);
 
     }
 

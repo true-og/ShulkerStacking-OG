@@ -12,7 +12,7 @@ public final class ShulkerBoxUtils {
 
     }
 
-    public static boolean isEmptyShulkerBox(ItemStack itemStack) {
+    public static boolean isShulkerBoxMaterial(ItemStack itemStack) {
 
         if (itemStack == null || itemStack.getType() == Material.AIR) {
 
@@ -20,7 +20,13 @@ public final class ShulkerBoxUtils {
 
         }
 
-        if (!itemStack.getType().toString().contains("SHULKER_BOX")) {
+        return itemStack.getType().toString().contains("SHULKER_BOX");
+
+    }
+
+    public static boolean isEmptyShulkerBox(ItemStack itemStack) {
+
+        if (!isShulkerBoxMaterial(itemStack)) {
 
             return false;
 

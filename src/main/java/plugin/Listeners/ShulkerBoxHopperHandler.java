@@ -1,6 +1,7 @@
 package plugin.Listeners;
 
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.inventory.Inventory;
@@ -10,7 +11,7 @@ import plugin.ShulkerBoxHelpers.ShulkerBoxUtils;
 
 public class ShulkerBoxHopperHandler implements Listener {
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void shulkerBoxHopperHandler(InventoryMoveItemEvent event) {
 
         ItemStack eventItem = event.getItem();
@@ -22,9 +23,15 @@ public class ShulkerBoxHopperHandler implements Listener {
 
         }
 
+        int toMove = eventItem.getAmount();
+        if (toMove <= 0) {
+
+            return;
+
+        }
+
         event.setCancelled(true);
 
-        int toMove = eventItem.getAmount();
         for (int i = 0; i < eventSource.getSize() && toMove > 0; i++) {
 
             ItemStack sourceItem = eventSource.getItem(i);
@@ -48,12 +55,8 @@ public class ShulkerBoxHopperHandler implements Listener {
             if (moved > 0) {
 
                 sourceItem.setAmount(sourceItem.getAmount() - moved);
+                eventSource.setItem(i, sourceItem.getAmount() <= 0 ? null : sourceItem);
                 toMove -= moved;
-                if (sourceItem.getAmount() <= 0) {
-
-                    eventSource.setItem(i, null);
-
-                }
 
             }
 
